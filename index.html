@@ -78,6 +78,7 @@
       <button type="button" id="reset">New game</button>
       <button type="button" id="mode">Mode: two players</button>
     </div>
+    <p id="captures" class="sub" style="margin-top:-0.4rem">Captured · red 0 · black 0</p>
     <div class="board" id="board" role="grid" aria-label="Checkers board"></div>
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
@@ -227,6 +228,15 @@
       statusEl.textContent = over
         ? (turn === "red" ? "Black wins" : "Red wins")
         : (turn === "red" ? "Red to move" : "Black to move");
+      let red = 0, black = 0;
+      for (const row of grid) {
+        for (const p of row) {
+          if (p?.side === "red") red += 1;
+          if (p?.side === "black") black += 1;
+        }
+      }
+      document.getElementById("captures").textContent =
+        `Captured · red ${12 - black} · black ${12 - red}`;
     }
 
     document.getElementById("reset").onclick = start;
