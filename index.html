@@ -72,23 +72,24 @@
 <body>
   <main>
     <h1>Checkers</h1>
-    <p class="sub">Buzz test product · two players on one board · red moves first</p>
+    <p class="sub">Buzz test product · you are red · play a friend or the computer</p>
     <div class="bar">
       <span id="status" class="turn red">Red to move</span>
       <button type="button" id="reset">New game</button>
+      <button type="button" id="mode">Mode: two players</button>
     </div>
     <div class="board" id="board" role="grid" aria-label="Checkers board"></div>
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
-      Reach the far row to king. This is the seed — talk lives in
-      <strong>#checkers-game-test-room</strong>, the project card is on Buzz Projects.
+      Reach the far row to king. Toggle <strong>vs computer</strong> to play black as a simple random AI.
+      Talk: <strong>#checkers-game-test-room</strong>.
     </p>
   </main>
   <script>
     const SIZE = 8;
     const boardEl = document.getElementById("board");
     const statusEl = document.getElementById("status");
-    let grid, turn, selected, legal;
+    let grid, turn, selected, legal, vsCpu = false, thinking = false;
 
     function start() {
       grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
@@ -103,6 +104,7 @@
       turn = "red";
       selected = null;
       legal = [];
+      thinking = false;
       draw();
     }
 
@@ -158,6 +160,7 @@
           selected = { r: to.r, c: to.c };
           legal = more;
           draw();
+          if (vsCpu && turn === "black") queueCpu();
           return;
         }
       }
@@ -165,6 +168,25 @@
       selected = null;
       legal = [];
       draw();
+      if (vsCpu && turn === "black") queueCpu();
+    }
+
+    function queueCpu() {
+      if (thinking) return;
+      thinking = true;
+      window.setTimeout(() => {
+        thinking = false;
+        if (!vsCpu || turn !== "black") return;
+        const pool = selected && legal.length
+          ? legal.map((m) => ({ from: selected, ...m }))
+          : allMoves("black");
+        if (!pool.length) {
+          draw();
+          return;
+        }
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        apply(pick.from, pick);
+      }, 350);
     }
 
     function draw() {
@@ -183,6 +205,7 @@
             sq.appendChild(el);
           }
           sq.addEventListener("click", () => {
+            if (thinking || (vsCpu && turn === "black")) return;
             const hit = legal.find((m) => m.r === r && m.c === c);
             if (selected && hit) {
               apply(selected, hit);
@@ -207,6 +230,13 @@
     }
 
     document.getElementById("reset").onclick = start;
+    document.getElementById("mode").onclick = () => {
+      vsCpu = !vsCpu;
+      document.getElementById("mode").textContent = vsCpu
+        ? "Mode: vs computer"
+        : "Mode: two players";
+      start();
+    };
     start();
   </script>
 </body>
