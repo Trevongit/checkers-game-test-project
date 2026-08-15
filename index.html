@@ -56,6 +56,8 @@
     .sq.dark { background: var(--dark); }
     .sq.hi { outline: 3px solid var(--accent); outline-offset: -3px; }
     .sq.mv { box-shadow: inset 0 0 0 4px #7aa2f788; }
+    .sq.last-from { outline: 3px dashed #bb9af7aa; outline-offset: -3px; }
+    .sq.last-to { outline: 3px solid #e0af68cc; outline-offset: -3px; }
     .piece {
       position: absolute; inset: 12%;
       border-radius: 50%;
@@ -81,7 +83,8 @@
     <div class="board" id="board" role="grid" aria-label="Checkers board"></div>
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
-      Reach the far row to king. Toggle <strong>vs computer</strong> to play black as a simple random AI.
+<<<<<<< HEAD
+      Reach the far row to king. Toggle <strong>vs computer</strong> to play black as a simple random AI. Last move is tinted (from / to).
       Talk: <strong>#checkers-game-test-room</strong>.
     </p>
   </main>
@@ -89,7 +92,7 @@
     const SIZE = 8;
     const boardEl = document.getElementById("board");
     const statusEl = document.getElementById("status");
-    let grid, turn, selected, legal, vsCpu = false, thinking = false;
+    let grid, turn, selected, legal, vsCpu = false, thinking = false, lastMove;
 
     function start() {
       grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
@@ -105,6 +108,7 @@
       selected = null;
       legal = [];
       thinking = false;
+      lastMove = null;
       draw();
     }
 
@@ -153,6 +157,7 @@
       if (to.jump) grid[to.jump.r][to.jump.c] = null;
       if ((p.side === "red" && to.r === 0) || (p.side === "black" && to.r === SIZE - 1)) p.king = true;
       grid[to.r][to.c] = p;
+      lastMove = { from: { r: from.r, c: from.c }, to: { r: to.r, c: to.c } };
       if (to.jump) {
         const more = movesFor(to.r, to.c).jumps;
         if (more.length) {
@@ -198,6 +203,10 @@
           sq.className = "sq " + ((r + c) % 2 === 0 ? "light" : "dark");
           if (selected && selected.r === r && selected.c === c) sq.classList.add("hi");
           if (legal.some((m) => m.r === r && m.c === c)) sq.classList.add("mv");
+          if (lastMove) {
+            if (lastMove.from.r === r && lastMove.from.c === c) sq.classList.add("last-from");
+            if (lastMove.to.r === r && lastMove.to.c === c) sq.classList.add("last-to");
+          }
           const p = grid[r][c];
           if (p) {
             const el = document.createElement("div");
