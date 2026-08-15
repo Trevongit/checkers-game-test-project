@@ -56,6 +56,7 @@
     .sq.dark { background: var(--dark); }
     .sq.hi { outline: 3px solid var(--accent); outline-offset: -3px; }
     .sq.mv { box-shadow: inset 0 0 0 4px #7aa2f788; }
+    /* outline so .mv legal inset box-shadow still shows when both apply */
     .sq.last-from { outline: 3px dashed #bb9af7aa; outline-offset: -3px; }
     .sq.last-to { outline: 3px solid #e0af68cc; outline-offset: -3px; }
     .piece {
@@ -83,7 +84,6 @@
     <div class="board" id="board" role="grid" aria-label="Checkers board"></div>
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
-<<<<<<< HEAD
       Reach the far row to king. Toggle <strong>vs computer</strong> to play black as a simple random AI. Last move is tinted (from / to).
       Talk: <strong>#checkers-game-test-room</strong>.
     </p>
