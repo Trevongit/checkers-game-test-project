@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Checkers · Buzz test game</title>
+  <style>
+    :root {
+      --bg: #1a1b26;
+      --panel: #24283b;
+      --ink: #c0caf5;
+      --muted: #565f89;
+      --red: #f7768e;
+      --black: #9ece6a;
+      --light: #e0af68;
+      --dark: #414868;
+      --accent: #7aa2f7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      display: grid;
+      place-items: start center;
+      padding: 1.5rem 1rem 3rem;
+    }
+    main { width: min(36rem, 100%); }
+    h1 { font-size: 1.25rem; margin: 0 0 0.25rem; }
+    .sub { color: var(--muted); font-size: 0.875rem; margin-bottom: 1rem; }
+    .bar {
+      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .turn { font-weight: 600; }
+    .turn.red { color: var(--red); }
+    .turn.black { color: var(--black); }
+    button {
+      background: var(--panel); color: var(--ink); border: 1px solid #3b4261;
+      border-radius: 0.5rem; padding: 0.4rem 0.75rem; cursor: pointer;
+    }
+    button:hover { border-color: var(--accent); }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      box-shadow: 0 12px 40px #0006;
+    }
+    .sq { position: relative; }
+    .sq.light { background: var(--light); }
+    .sq.dark { background: var(--dark); }
+    .sq.hi { outline: 3px solid var(--accent); outline-offset: -3px; }
+    .sq.mv { box-shadow: inset 0 0 0 4px #7aa2f788; }
+    .piece {
+      position: absolute; inset: 12%;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-weight: 800; color: #1a1b26;
+      cursor: pointer; user-select: none;
+    }
+    .piece.red { background: radial-gradient(circle at 30% 30%, #ff9eb0, var(--red)); }
+    .piece.black { background: radial-gradient(circle at 30% 30%, #c6f0a0, var(--black)); }
+    .piece.king::after { content: "♔"; }
+    .help { margin-top: 1rem; color: var(--muted); font-size: 0.8rem; line-height: 1.45; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Checkers</h1>
+    <p class="sub">Buzz test product · two players on one board · red moves first</p>
+    <div class="bar">
+      <span id="status" class="turn red">Red to move</span>
+      <button type="button" id="reset">New game</button>
+    </div>
+    <div class="board" id="board" role="grid" aria-label="Checkers board"></div>
+    <p class="help">
+      Click a piece, then a highlighted square. Jumps are mandatory when available.
+      Reach the far row to king. This is the seed — talk lives in
+      <strong>#checkers-game-test-room</strong>, the project card is on Buzz Projects.
+    </p>
+  </main>
+  <script>
+    const SIZE = 8;
+    const boardEl = document.getElementById("board");
+    const statusEl = document.getElementById("status");
+    let grid, turn, selected, legal;
+
+    function start() {
+      grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          if ((r + c) % 2 === 1) {
+            if (r < 3) grid[r][c] = { side: "black", king: false };
+            if (r > 4) grid[r][c] = { side: "red", king: false };
+          }
+        }
+      }
+      turn = "red";
+      selected = null;
+      legal = [];
+      draw();
+    }
+
+    function dir(side) { return side === "red" ? [-1] : [1]; }
+
+    function inside(r, c) { return r >= 0 && r < SIZE && c >= 0 && c < SIZE; }
+
+    function movesFor(r, c) {
+      const p = grid[r][c];
+      if (!p) return [];
+      const rows = p.king ? [-1, 1] : dir(p.side);
+      const cols = [-1, 1];
+      const jumps = [];
+      const steps = [];
+      for (const dr of rows) {
+        for (const dc of cols) {
+          const r1 = r + dr, c1 = c + dc;
+          const r2 = r + 2 * dr, c2 = c + 2 * dc;
+          if (inside(r2, c2) && grid[r1][c1] && grid[r1][c1].side !== p.side && !grid[r2][c2]) {
+            jumps.push({ r: r2, c: c2, jump: { r: r1, c: c1 } });
+          } else if (inside(r1, c1) && !grid[r1][c1]) {
+            steps.push({ r: r1, c: c1, jump: null });
+          }
+        }
+      }
+      return { jumps, steps };
+    }
+
+    function allMoves(side) {
+      const jumps = [];
+      const steps = [];
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          if (!grid[r][c] || grid[r][c].side !== side) continue;
+          const m = movesFor(r, c);
+          for (const x of m.jumps) jumps.push({ from: { r, c }, ...x });
+          for (const x of m.steps) steps.push({ from: { r, c }, ...x });
+        }
+      }
+      return jumps.length ? jumps : steps;
+    }
+
+    function apply(from, to) {
+      const p = grid[from.r][from.c];
+      grid[from.r][from.c] = null;
+      if (to.jump) grid[to.jump.r][to.jump.c] = null;
+      if ((p.side === "red" && to.r === 0) || (p.side === "black" && to.r === SIZE - 1)) p.king = true;
+      grid[to.r][to.c] = p;
+      if (to.jump) {
+        const more = movesFor(to.r, to.c).jumps;
+        if (more.length) {
+          turn = p.side;
+          selected = { r: to.r, c: to.c };
+          legal = more;
+          draw();
+          return;
+        }
+      }
+      turn = turn === "red" ? "black" : "red";
+      selected = null;
+      legal = [];
+      draw();
+    }
+
+    function draw() {
+      const available = allMoves(turn);
+      boardEl.innerHTML = "";
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const sq = document.createElement("div");
+          sq.className = "sq " + ((r + c) % 2 === 0 ? "light" : "dark");
+          if (selected && selected.r === r && selected.c === c) sq.classList.add("hi");
+          if (legal.some((m) => m.r === r && m.c === c)) sq.classList.add("mv");
+          const p = grid[r][c];
+          if (p) {
+            const el = document.createElement("div");
+            el.className = "piece " + p.side + (p.king ? " king" : "");
+            sq.appendChild(el);
+          }
+          sq.addEventListener("click", () => {
+            const hit = legal.find((m) => m.r === r && m.c === c);
+            if (selected && hit) {
+              apply(selected, hit);
+              return;
+            }
+            if (p && p.side === turn) {
+              const mine = available.filter((m) => m.from.r === r && m.from.c === c);
+              if (!mine.length) return;
+              selected = { r, c };
+              legal = mine;
+              draw();
+            }
+          });
+          boardEl.appendChild(sq);
+        }
+      }
+      const over = !available.length;
+      statusEl.className = "turn " + turn;
+      statusEl.textContent = over
+        ? (turn === "red" ? "Black wins" : "Red wins")
+        : (turn === "red" ? "Red to move" : "Black to move");
+    }
+
+    document.getElementById("reset").onclick = start;
+    start();
+  </script>
+</body>
+</html>
