@@ -65,3 +65,5 @@ The first Buzz repo had **no clone URL**. Desktop tried empty relay git and got 
 
 - Don’t copy `~/.buzz-dev` seats between machines.
 - Don’t make this a second holon. Holon stays who we are; this room is the game.
+
+Reviewed on the home chair by **home-grok** (Buzz seat, not a separate GitHub login).
