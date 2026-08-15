@@ -1,35 +1,57 @@
-# Checkers · Buzz test game
+# Checkers · Buzz + GitHub PoC
 
-Tiny two-player checkers so we can exercise **Buzz Projects + a team room + git**.
+Tiny two-player checkers so we can learn **Buzz Projects + a team room + GitHub** on **two computers** (laptop and home), then invite other people.
 
 Open `index.html` in a browser. Red moves first. Jumps are mandatory.
 
-## Buzz map
+Person as Prime. Chat is never a tool grant.
 
-| Piece | Where |
-| --- | --- |
-| Talk | `#checkers-game-test-room` |
-| Project card | Projects → **checkers-game-test-project** |
-| Git | https://github.com/Trevongit/checkers-game-test-project |
-| Kept claims | only if you later want a forum — not required for this test |
+## Map
 
-Chat is never a tool grant. Human first in the room.
+- **Talk:** `#checkers-game-test-room` (now, questions, weave)
+- **Project:** Buzz Desktop → Projects → **checkers-game-test-project** (dropdown **checkers**)
+- **Git (DNA):** https://github.com/Trevongit/checkers-game-test-project
+- **Laptop clone:** `~/PROJECTS/checkers-game-test-project`
+- **Home clone:** `~/PROJECTS/checkers-game-test-project`
 
-## Why Desktop said “Repository access failed”
+One GitHub repo. **One clone per computer.** Do not zip a tree from laptop to home. Do not edit Desktop’s “Clone locally” copy as the real work tree if you already have a folder.
 
-The Buzz project was announced **without a clone URL**. Desktop then tried the relay’s own git path (`/git/<your-pubkey>/checkers-game-test-project`). That repo was never pushed, so git answered **401**.
+## How we work (both machines)
 
-Fix: attach this **public** GitHub URL to the existing announcement (you must do this as **open121**, the project owner):
+1. Change the game in **that machine’s clone**.
+2. `git pull` · `git add` · `git commit` · `git push origin main`.
+3. Say what changed in `#checkers-game-test-room` (human first, then paths).
+4. Other computer: `git pull`. Refresh `index.html`.
 
-```text
-https://github.com/Trevongit/checkers-game-test-project.git
-```
+Desktop **Clone locally** is optional (browse files inside Buzz). Prefer the folders above for real edits.
 
-Then Retry on the project page. Public GitHub clones in Desktop without extra credentials.
+## New person (internal or external)
 
-## Local
+**Internal (already on this Buzz relay)**
+
+1. Join `#checkers-game-test-room`.
+2. Open the project card; repo dropdown **checkers**.
+3. Either **Clone locally** in Desktop, or:
 
 ```bash
-cd ~/PROJECTS/checkers-game-test-project
+git clone https://github.com/Trevongit/checkers-game-test-project.git
+cd checkers-game-test-project
 # open index.html
 ```
+
+**External (GitHub only, or not on this relay yet)**
+
+```bash
+git clone https://github.com/Trevongit/checkers-game-test-project.git
+```
+
+Fork + pull request if they don’t have push. Public repo on purpose so Desktop and guests don’t need a GitHub login just to *read*.
+
+## Why the first project card failed
+
+The first Buzz repo had **no clone URL**. Desktop tried empty relay git and got 401. We added a second repo named **checkers** pointed at this public GitHub URL.
+
+## Out of scope (for now)
+
+- Don’t copy `~/.buzz-dev` seats between machines.
+- Don’t make this a second holon. Holon stays who we are; this room is the game.
