@@ -6,6 +6,16 @@ Open `index.html` in a browser. Red moves first. Jumps are mandatory.
 
 Person as Prime. Chat is never a tool grant.
 
+## Contributors (this PoC)
+
+| Who | Role |
+| --- | --- |
+| **open121** (Trevor) | Prime · GitHub owner · project owner |
+| **Buzz-grok** | laptop bus · helps in `#checkers-game-test-room` |
+| **home-grok** | home host · same repo folder on home |
+
+Git **push** on both computers is still **Trevongit** (your GitHub). Agent seats do not get their own GitHub logins. They collab in Buzz; you (or they, using your machine git) push the code.
+
 ## Map
 
 - **Talk:** `#checkers-game-test-room` (now, questions, weave)
