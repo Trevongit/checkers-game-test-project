@@ -15,6 +15,11 @@
       --light: #e0af68;
       --dark: #414868;
       --accent: #7aa2f7;
+      --yaw: 0deg;
+      --wood: #b07a42;
+      --frame: #7a4a24;
+      --plank: #d8b07a;
+      --inkwell: #1c1610;
     }
     * { box-sizing: border-box; }
     body {
@@ -27,7 +32,7 @@
       place-items: start center;
       padding: 1.5rem 1rem 3rem;
     }
-    main { width: min(36rem, 100%); }
+    main { width: min(40rem, 100%); }
     h1 { font-size: 1.25rem; margin: 0 0 0.25rem; }
     .sub { color: var(--muted); font-size: 0.875rem; margin-bottom: 1rem; }
     .bar {
@@ -42,6 +47,8 @@
       border-radius: 0.5rem; padding: 0.4rem 0.75rem; cursor: pointer;
     }
     button:hover { border-color: var(--accent); }
+    .stage { width: 100%; }
+    .table { width: 100%; }
     .board {
       display: grid;
       grid-template-columns: repeat(8, 1fr);
@@ -56,7 +63,6 @@
     .sq.dark { background: var(--dark); }
     .sq.hi { outline: 3px solid var(--accent); outline-offset: -3px; }
     .sq.mv { box-shadow: inset 0 0 0 4px #7aa2f788; }
-    /* outline so .mv legal inset box-shadow still shows when both apply */
     .sq.last-from { outline: 3px dashed #bb9af7aa; outline-offset: -3px; }
     .sq.last-to { outline: 3px solid #e0af68cc; outline-offset: -3px; }
     .piece {
@@ -70,9 +76,82 @@
     .piece.black { background: radial-gradient(circle at 30% 30%, #c6f0a0, var(--black)); }
     .piece.king::after { content: "♔"; }
     .help { margin-top: 1rem; color: var(--muted); font-size: 0.8rem; line-height: 1.45; }
+
+    /* 3D table — taste from FEUP SGI checkers, CSS only, no vendor dump */
+    body.view-3d { background: radial-gradient(120% 80% at 50% 0%, #3a2a18, #14110d 70%); }
+    body.view-3d .turn.red { color: #e8c39a; }
+    body.view-3d .turn.black { color: #f3ead4; }
+    .stage.is-3d {
+      perspective: 1400px;
+      perspective-origin: 50% 28%;
+      padding: 0.5rem 1.4rem 4.5rem;
+    }
+    .stage.is-3d .table {
+      background:
+        repeating-linear-gradient(90deg, #0000 0 18px, #00000010 18px 19px),
+        linear-gradient(180deg, #c99252, var(--wood) 40%, #8d5a2c);
+      padding: 1.2rem 1.2rem 1.5rem;
+      border-radius: 0.35rem;
+      transform: rotateX(38deg) rotateZ(var(--yaw));
+      transform-style: preserve-3d;
+      box-shadow: 0 2.2rem 2rem #0007;
+    }
+    .stage.is-3d .board {
+      overflow: visible;
+      border-radius: 0.15rem;
+      border: 0.7rem solid var(--frame);
+      box-shadow:
+        0 0 0 2px #4a2a12,
+        0 18px 0 #00000022,
+        inset 0 0 0 1px #0004;
+      transform-style: preserve-3d;
+    }
+    .stage.is-3d .sq.light { background: var(--plank); }
+    .stage.is-3d .sq.dark { background: var(--inkwell); }
+    .stage.is-3d .sq.hi { outline-color: #f4e7b0; }
+    .stage.is-3d .sq.mv { box-shadow: inset 0 0 0 4px #3d8f4aaa; background: #2f6b38; }
+    .stage.is-3d .sq.last-from { outline-color: #c9a22788; }
+    .stage.is-3d .sq.last-to { outline-color: #f0d78a; }
+    .stage.is-3d .sq { transform-style: preserve-3d; }
+    .stage.is-3d .piece {
+      inset: 16%;
+      transform: translateZ(12px);
+      box-shadow:
+        0 1px 0 #0005,
+        0 5px 0 #3a2414,
+        0 9px 10px #0006;
+    }
+    .stage.is-3d .piece.red {
+      background: radial-gradient(circle at 32% 28%, #8a5a32, #4a2a16 70%);
+      color: #f3ead4;
+    }
+    .stage.is-3d .piece.black {
+      background: radial-gradient(circle at 32% 28%, #f6edd8, #d7c4a0 70%);
+      color: #3a2414;
+    }
+    .stage.is-3d .piece.king {
+      box-shadow:
+        0 1px 0 #0005,
+        0 5px 0 currentColor,
+        0 6px 0 #0003,
+        0 11px 0 #3a2414,
+        0 14px 12px #0006;
+    }
+    .stage.is-3d .sq.hi .piece {
+      filter: brightness(1.18);
+      box-shadow:
+        0 0 18px #fff8,
+        0 1px 0 #0005,
+        0 5px 0 #3a2414,
+        0 9px 10px #0006;
+    }
+    .stage.is-3d .piece.just-moved { animation: hop 0.32s ease; }
+    @keyframes hop {
+      45% { transform: translateZ(36px) scale(1.06); }
+    }
   </style>
 </head>
-<body>
+<body class="view-3d">
   <main>
     <h1>Checkers</h1>
     <p class="sub">Buzz test product · you are red · play a friend or the computer</p>
@@ -80,11 +159,19 @@
       <span id="status" class="turn red">Red to move</span>
       <button type="button" id="reset">New game</button>
       <button type="button" id="mode">Mode: two players</button>
+      <button type="button" id="view">View: 3D table</button>
+      <button type="button" id="orbit">Rotate table</button>
     </div>
-    <div class="board" id="board" role="grid" aria-label="Checkers board"></div>
+    <div class="stage is-3d" id="stage">
+      <div class="table" id="table">
+        <div class="board" id="board" role="grid" aria-label="Checkers board"></div>
+      </div>
+    </div>
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
       Reach the far row to king. Toggle <strong>vs computer</strong> to play black as a simple random AI. Last move is tinted (from / to).
+      <strong>3D table</strong> is a CSS first slice (tilt, wood discs, pick glow, green hints, rotate) — taste from
+      <a href="https://github.com/bdmendes/feup-sgi-checkers" style="color:inherit">FEUP SGI checkers</a>, not a dump of that engine.
       Talk: <strong>#checkers-game-test-room</strong>.
     </p>
   </main>
@@ -92,7 +179,11 @@
     const SIZE = 8;
     const boardEl = document.getElementById("board");
     const statusEl = document.getElementById("status");
+    const stageEl = document.getElementById("stage");
+    const viewBtn = document.getElementById("view");
+    const orbitBtn = document.getElementById("orbit");
     let grid, turn, selected, legal, vsCpu = false, thinking = false, lastMove;
+    let view3d = true, yaw = 0;
 
     function start() {
       grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
@@ -211,6 +302,7 @@
           if (p) {
             const el = document.createElement("div");
             el.className = "piece " + p.side + (p.king ? " king" : "");
+            if (lastMove && lastMove.to.r === r && lastMove.to.c === c) el.classList.add("just-moved");
             sq.appendChild(el);
           }
           sq.addEventListener("click", () => {
@@ -238,6 +330,19 @@
         : (turn === "red" ? "Red to move" : "Black to move");
     }
 
+    function setView(next) {
+      view3d = next;
+      document.body.classList.toggle("view-3d", view3d);
+      stageEl.classList.toggle("is-3d", view3d);
+      viewBtn.textContent = view3d ? "View: 3D table" : "View: 2D";
+      orbitBtn.hidden = !view3d;
+    }
+
+    function setYaw(next) {
+      yaw = ((next % 360) + 360) % 360;
+      document.documentElement.style.setProperty("--yaw", yaw + "deg");
+    }
+
     document.getElementById("reset").onclick = start;
     document.getElementById("mode").onclick = () => {
       vsCpu = !vsCpu;
@@ -246,6 +351,10 @@
         : "Mode: two players";
       start();
     };
+    viewBtn.onclick = () => setView(!view3d);
+    orbitBtn.onclick = () => setYaw(yaw + 180);
+    setView(true);
+    setYaw(0);
     start();
   </script>
 </body>

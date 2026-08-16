@@ -4,6 +4,8 @@ Tiny two-player checkers so we can learn **Buzz Projects + a team room + GitHub*
 
 Open `index.html` in a browser. Red moves first. Jumps are mandatory.
 
+Default view is a **CSS 3D wood table** (tilt, disc pieces, pick glow, green move hints, rotate). Toggle **View: 2D** for the original flat board. This is a first slice inspired by [bdmendes/feup-sgi-checkers](https://github.com/bdmendes/feup-sgi-checkers) — we did **not** copy that engine (archived class project, no license, XML + WebGL).
+
 Person as Prime. Chat is never a tool grant.
 
 ## Contributors (this PoC)
