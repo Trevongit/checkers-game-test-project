@@ -94,6 +94,7 @@
       border-radius: 0.35rem;
       transform: rotateX(38deg) rotateZ(var(--yaw));
       transform-style: preserve-3d;
+      transition: transform 0.7s ease;
       box-shadow: 0 2.2rem 2rem #0007;
     }
     .stage.is-3d .board {
@@ -177,6 +178,7 @@
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
       Reach the far row to king. Click <strong>Play vs computer</strong> — black thinks a few plies. <strong>Autoplay</strong> lets both sides think so a game can finish without clicks. Last move is tinted. Captures sit on the rack.
+      A position seen three times, or forty plies with no capture, is a draw — no 2-by-2 king dances. <strong>Rotate table</strong> walks around (not a 180 flip); autoplay eases the camera forward each ply.
       <strong>3D table</strong> is a CSS first slice (tilt, wood discs, pick glow, green hints, rotate) — taste from
       <a href="https://github.com/bdmendes/feup-sgi-checkers" style="color:inherit">FEUP SGI checkers</a>, not a dump of that engine.
       Talk: <strong>#checkers-game-test-room</strong>.
@@ -192,6 +194,9 @@
     const orbitBtn = document.getElementById("orbit");
     let grid, turn, selected, legal, vsCpu = false, thinking = false, lastMove;
     let view3d = true, yaw = 0, autoplay = false;
+    let seen = new Map();
+    let quiet = 0;
+    let outcome = null;
 
     function start() {
       grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
@@ -208,7 +213,29 @@
       legal = [];
       thinking = false;
       lastMove = null;
+      seen = new Map();
+      quiet = 0;
+      outcome = null;
+      notePosition();
       draw();
+    }
+
+    function posKey(state, side) {
+      const bits = [side];
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const p = state[r][c];
+          if (p) bits.push("" + r + c + p.side[0] + (p.king ? "k" : "m"));
+        }
+      }
+      return bits.join(":");
+    }
+
+    function notePosition() {
+      const key = posKey(grid, turn);
+      seen.set(key, (seen.get(key) || 0) + 1);
+      if (seen.get(key) >= 3) outcome = "draw-repeat";
+      else if (quiet >= 40) outcome = "draw-quiet";
     }
 
     function dir(side) { return side === "red" ? [-1] : [1]; }
@@ -308,6 +335,12 @@
       return -search(next, side === "red" ? "black" : "red", depth - 1, -beta, -alpha, null);
     }
 
+    function nextKeyAfter(state, mv, side) {
+      const next = applyOn(state, mv.from, mv);
+      const more = replyAfter(next, mv, side);
+      return more ? posKey(next, side) : posKey(next, side === "red" ? "black" : "red");
+    }
+
     function pickCpu(pool, side) {
       const depth = 4;
       let best = pool[0];
@@ -315,7 +348,9 @@
       for (const mv of pool) {
         let v = childValue(grid, mv, side, depth, -1e9, 1e9);
         v += mv.jump ? 3 : 0;
-        if (v > bestV) {
+        const repeats = seen.get(nextKeyAfter(grid, mv, side)) || 0;
+        v -= repeats * 45;
+        if (v > bestV || (v === bestV && Math.random() < 0.35)) {
           bestV = v;
           best = mv;
         }
@@ -347,6 +382,7 @@
       grid[to.r][to.c] = p;
       lastMove = { from: { r: from.r, c: from.c }, to: { r: to.r, c: to.c } };
       if (to.jump) {
+        quiet = 0;
         const more = movesFor(to.r, to.c).jumps;
         if (more.length) {
           turn = p.side;
@@ -356,15 +392,28 @@
           if (shouldThink(turn)) queueThink();
           return;
         }
+      } else {
+        quiet += 1;
       }
       turn = turn === "red" ? "black" : "red";
       selected = null;
       legal = [];
+      notePosition();
+      if (autoplay && view3d) setYaw(yaw + 12);
+      if (outcome) {
+        autoplay = false;
+        thinking = false;
+        syncModeButtons();
+        draw();
+        return;
+      }
       draw();
       if (shouldThink(turn)) queueThink();
     }
 
     function shouldThink(side) {
+      if (outcome) return false;
+      if (!allMoves(side).length) return false;
       if (autoplay) return true;
       return vsCpu && side === "black";
     }
@@ -446,9 +495,15 @@
       }
       const over = !available.length;
       statusEl.className = "turn " + turn;
-      statusEl.textContent = over
-        ? (turn === "red" ? "Black wins" : "Red wins")
-        : (turn === "red" ? "Red to move" : "Black to move");
+      if (outcome === "draw-repeat") {
+        statusEl.textContent = "Draw · repeated position";
+      } else if (outcome === "draw-quiet") {
+        statusEl.textContent = "Draw · no progress";
+      } else {
+        statusEl.textContent = over
+          ? (turn === "red" ? "Black wins" : "Red wins")
+          : (turn === "red" ? "Red to move" : "Black to move");
+      }
       const redLeft = countSide("red");
       const blackLeft = countSide("black");
       rackEl.replaceChildren(
@@ -508,7 +563,7 @@
       if (autoplay) queueThink();
     };
     viewBtn.onclick = () => setView(!view3d);
-    orbitBtn.onclick = () => setYaw(yaw + 180);
+    orbitBtn.onclick = () => setYaw(yaw + 45);
     setView(true);
     setYaw(0);
     start();
