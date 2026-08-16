@@ -149,6 +149,11 @@
     @keyframes hop {
       45% { transform: translateZ(36px) scale(1.06); }
     }
+    .rack {
+      display: flex; gap: 1rem; flex-wrap: wrap;
+      margin: 0.35rem 0 0.75rem; color: var(--muted); font-size: 0.85rem;
+    }
+    .rack b { color: var(--ink); font-weight: 600; }
   </style>
 </head>
 <body class="view-3d">
@@ -162,6 +167,7 @@
       <button type="button" id="view">View: 3D table</button>
       <button type="button" id="orbit">Rotate table</button>
     </div>
+    <div class="rack" id="rack" aria-live="polite"></div>
     <div class="stage is-3d" id="stage">
       <div class="table" id="table">
         <div class="board" id="board" role="grid" aria-label="Checkers board"></div>
@@ -169,7 +175,7 @@
     </div>
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
-      Reach the far row to king. Click <strong>Play vs computer</strong> and black moves on its own. Last move is tinted (from / to).
+      Reach the far row to king. Click <strong>Play vs computer</strong> — black thinks a few plies (captures and kings first), not a coin flip. Last move is tinted (from / to). Captures sit on the rack.
       <strong>3D table</strong> is a CSS first slice (tilt, wood discs, pick glow, green hints, rotate) — taste from
       <a href="https://github.com/bdmendes/feup-sgi-checkers" style="color:inherit">FEUP SGI checkers</a>, not a dump of that engine.
       Talk: <strong>#checkers-game-test-room</strong>.
@@ -179,6 +185,7 @@
     const SIZE = 8;
     const boardEl = document.getElementById("board");
     const statusEl = document.getElementById("status");
+    const rackEl = document.getElementById("rack");
     const stageEl = document.getElementById("stage");
     const viewBtn = document.getElementById("view");
     const orbitBtn = document.getElementById("orbit");
@@ -242,6 +249,92 @@
       return jumps.length ? jumps : steps;
     }
 
+    function cloneGrid(src) {
+      return src.map((row) => row.map((p) => (p ? { side: p.side, king: p.king } : null)));
+    }
+
+    function applyOn(state, from, to) {
+      const g = cloneGrid(state);
+      const p = { ...g[from.r][from.c] };
+      g[from.r][from.c] = null;
+      if (to.jump) g[to.jump.r][to.jump.c] = null;
+      if ((p.side === "red" && to.r === 0) || (p.side === "black" && to.r === SIZE - 1)) p.king = true;
+      g[to.r][to.c] = p;
+      return g;
+    }
+
+    function movesOn(state, r, c) {
+      const saved = grid;
+      grid = state;
+      const m = movesFor(r, c);
+      grid = saved;
+      return m;
+    }
+
+    function allMovesOn(state, side) {
+      const saved = grid;
+      grid = state;
+      const m = allMoves(side);
+      grid = saved;
+      return m;
+    }
+
+    function score(state, side) {
+      let n = 0;
+      for (let r = 0; r < SIZE; r++) {
+        for (let c = 0; c < SIZE; c++) {
+          const p = state[r][c];
+          if (!p) continue;
+          let v = p.king ? 18 : 10;
+          if (!p.king) v += p.side === "black" ? r : (SIZE - 1 - r);
+          if (c === 0 || c === SIZE - 1) v += 1;
+          n += p.side === side ? v : -v;
+        }
+      }
+      return n;
+    }
+
+    function pickCpu(pool, side) {
+      const depth = 4;
+      let best = pool[0];
+      let bestV = -1e9;
+      for (const mv of pool) {
+        const next = applyOn(grid, mv.from, mv);
+        let v;
+        if (mv.jump && movesOn(next, mv.r, mv.c).jumps.length) {
+          v = search(next, side, depth, -1e9, 1e9);
+        } else {
+          v = -search(next, side === "red" ? "black" : "red", depth - 1, -1e9, 1e9);
+        }
+        v += mv.jump ? 3 : 0;
+        if (v > bestV) {
+          bestV = v;
+          best = mv;
+        }
+      }
+      return best;
+    }
+
+    function search(state, side, depth, alpha, beta) {
+      const pool = allMovesOn(state, side);
+      if (!pool.length) return -400;
+      if (depth <= 0) return score(state, side);
+      let best = -1e9;
+      for (const mv of pool) {
+        const next = applyOn(state, mv.from, mv);
+        let v;
+        if (mv.jump && movesOn(next, mv.r, mv.c).jumps.length) {
+          v = search(next, side, depth, alpha, beta);
+        } else {
+          v = -search(next, side === "red" ? "black" : "red", depth - 1, -beta, -alpha);
+        }
+        if (v > best) best = v;
+        if (v > alpha) alpha = v;
+        if (alpha >= beta) break;
+      }
+      return best;
+    }
+
     function apply(from, to) {
       const p = grid[from.r][from.c];
       grid[from.r][from.c] = null;
@@ -280,9 +373,9 @@
           draw();
           return;
         }
-        const pick = pool[Math.floor(Math.random() * pool.length)];
+        const pick = pickCpu(pool, "black");
         apply(pick.from, pick);
-      }, 350);
+      }, 280);
     }
 
     function draw() {
@@ -328,6 +421,24 @@
       statusEl.textContent = over
         ? (turn === "red" ? "Black wins" : "Red wins")
         : (turn === "red" ? "Red to move" : "Black to move");
+      const redLeft = countSide("red");
+      const blackLeft = countSide("black");
+      rackEl.replaceChildren(
+        rackLine("Red captured ", 12 - blackLeft),
+        rackLine("Black captured ", 12 - redLeft)
+      );
+    }
+
+    function rackLine(label, n) {
+      const s = document.createElement("span");
+      s.append(label, Object.assign(document.createElement("b"), { textContent: String(n) }));
+      return s;
+    }
+
+    function countSide(side) {
+      let n = 0;
+      for (const row of grid) for (const p of row) if (p && p.side === side) n++;
+      return n;
     }
 
     function setView(next) {
