@@ -126,19 +126,22 @@
     }
     .stage.is-3d .table {
       background:
-        repeating-linear-gradient(91deg, #0000 0 2px, #2a120866 2px 3px, #0000 3px 13px),
-        repeating-linear-gradient(88deg, #e8b87a33 0 1px, #0000 1px 9px, #5a2a1033 9px 10px, #0000 10px 17px),
+        linear-gradient(165deg, #fff6e020 0%, #0000 38%, #0006 100%),
+        repeating-linear-gradient(93deg, #0000 0 1px, #2a100855 1px 2px, #0000 2px 11px),
+        repeating-linear-gradient(87deg, #f0c89044 0 1px, #0000 1px 8px, #4a200e40 8px 9px, #0000 9px 21px),
         repeating-linear-gradient(90deg,
-          #7a421c 0 14px,
-          #a05a28 14px 15px,
-          #8a4a20 15px 28px,
-          #5c3014 28px 29px,
-          #6e3a18 29px 40px),
-        radial-gradient(120% 80% at 50% 18%, #b87338, #5a3016 62%, #3a1c0c 100%);
-      background-blend-mode: overlay, soft-light, multiply, normal;
+          #8a4a20 0 11px,
+          #c2783a 11px 12px,
+          #9a5426 12px 23px,
+          #5a2c12 23px 24px,
+          #704018 24px 38px,
+          #a86430 38px 39px,
+          #7a401c 39px 52px),
+        radial-gradient(120% 80% at 42% 12%, #d08a48, #6a3818 58%, #2a1408 100%);
+      background-blend-mode: soft-light, overlay, soft-light, multiply, normal;
       padding: 1.55rem 1.55rem 1.7rem;
       border-radius: 0.85rem;
-      border: 3px solid #c9a22766;
+      border: 3px solid #e0c070aa;
       transform: rotateX(32deg) rotateZ(var(--yaw));
       transform-style: preserve-3d;
       box-shadow:
@@ -147,30 +150,50 @@
         0 2.4rem 2.4rem #000a;
     }
     .stage.is-3d .board {
+      position: relative;
       overflow: visible;
       border-radius: 0.2rem;
-      border: 0.18rem solid #d4b56a;
+      border: 0.18rem solid #e8cc7a;
       box-shadow:
-        0 0 0 6px #5a3218,
+        0 0 0 1px #fff4,
+        0 0 0 7px #5a3218,
+        0 10px 18px #0007,
         inset 0 0 0 1px #0004;
       transform-style: preserve-3d;
     }
+    .stage.is-3d .board::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background:
+        radial-gradient(90% 70% at 28% 8%, #fff6e055, #0000 46%),
+        linear-gradient(168deg, #fff4e020 0%, #0000 42%, #0006 100%);
+      mix-blend-mode: soft-light;
+    }
     .stage.is-3d .sq.light {
       background:
-        repeating-linear-gradient(180deg, #0000 0 1px, #6a3a1222 1px 2px, #0000 2px 6px),
-        repeating-linear-gradient(176deg, #fff8e055 0 1px, #0000 1px 7px, #c48a4033 7px 8px, #0000 8px 15px),
-        linear-gradient(180deg, #f6dfb0 0%, #e0b56a 42%, #c99248 78%, #b47a32 100%);
-      background-blend-mode: multiply, overlay, normal;
+        repeating-linear-gradient(180deg, #0000 0 1px, #6a3a1228 1px 2px, #0000 2px 5px),
+        repeating-linear-gradient(173deg, #fff8e066 0 1px, #0000 1px 6px, #c48a4040 6px 7px, #0000 7px 14px),
+        repeating-linear-gradient(8deg, #0000 0 18px, #d4a05033 18px 20px, #0000 20px 41px),
+        linear-gradient(168deg, #fae6bc 0%, #e8be72 40%, #d09a48 76%, #b47a30 100%);
+      background-blend-mode: multiply, overlay, soft-light, normal;
       box-shadow: inset 0 0 10px #7a4a1822;
     }
     .stage.is-3d .sq.dark {
       background:
-        repeating-linear-gradient(180deg, #0000 0 1px, #00000055 1px 2px, #0000 2px 7px),
-        repeating-linear-gradient(184deg, #8a5a3033 0 1px, #0000 1px 8px, #1a0c0666 8px 9px, #0000 9px 16px),
-        linear-gradient(180deg, #4e3018 0%, #2a180e 48%, #140c08 100%);
-      background-blend-mode: overlay, soft-light, normal;
-      box-shadow: inset 0 0 12px #0006;
+        repeating-linear-gradient(180deg, #0000 0 1px, #00000066 1px 2px, #0000 2px 6px),
+        repeating-linear-gradient(187deg, #a06a3833 0 1px, #0000 1px 7px, #10080477 7px 8px, #0000 8px 15px),
+        repeating-linear-gradient(-6deg, #0000 0 22px, #3a201088 22px 25px, #0000 25px 48px),
+        linear-gradient(168deg, #5a3820 0%, #2c1810 46%, #120a06 100%);
+      background-blend-mode: overlay, soft-light, multiply, normal;
+      box-shadow: inset 0 0 12px #0007;
     }
+    .stage.is-3d .sq.light:nth-child(3n) { background-position: 0 3px, 2px 1px, 6px 0, 0 0; }
+    .stage.is-3d .sq.light:nth-child(5n) { background-position: 0 6px, -3px 2px, 12px 4px, 0 0; }
+    .stage.is-3d .sq.dark:nth-child(4n) { background-position: 0 4px, 3px 0, -8px 2px, 0 0; }
+    .stage.is-3d .sq.dark:nth-child(7n) { background-position: 0 7px, -2px 3px, 10px 0, 0 0; }
     .stage.is-3d .sq.hi { outline-color: #f4e7b0; }
     .stage.is-3d .sq.mv { box-shadow: inset 0 0 0 4px #3d8f4aaa; background: #2f6b38; }
     .stage.is-3d .sq.last-from { outline-color: #c9a22788; }
@@ -178,19 +201,28 @@
     .stage.is-3d .sq { transform-style: preserve-3d; }
     .stage.is-3d .piece {
       inset: 15%;
-      transform: translateZ(14px);
+      z-index: 3;
+      transform: translateZ(16px);
       box-shadow:
-        inset 0 -6px 8px #0005,
-        0 2px 0 #0006,
-        0 8px 0 #2a160c,
-        0 12px 14px #0008;
+        inset -5px -8px 12px #0005,
+        inset 5px 6px 10px #fff3,
+        0 1px 0 #fff4,
+        0 3px 0 #0005,
+        0 9px 0 #2a160c,
+        0 14px 16px #0009;
     }
     .stage.is-3d .piece.red {
-      background: radial-gradient(circle at 32% 26%, #ff8a78, #b3261c 42%, #5a1010 78%);
+      background:
+        radial-gradient(circle at 28% 22%, #fff8 0 7%, #0000 20%),
+        radial-gradient(circle at 68% 70%, #0000 40%, #3a080866 78%),
+        radial-gradient(circle at 34% 28%, #ffb4a4, #d03224 36%, #8a1410 68%, #3a0808 100%);
       color: #f8ead0;
     }
     .stage.is-3d .piece.black {
-      background: radial-gradient(circle at 32% 26%, #6a6662, #1c1816 55%, #080706 80%);
+      background:
+        radial-gradient(circle at 28% 22%, #fff6 0 7%, #0000 20%),
+        radial-gradient(circle at 68% 70%, #0000 40%, #00000088 80%),
+        radial-gradient(circle at 34% 28%, #8a8682, #2a2624 42%, #0c0a0a 78%, #040303 100%);
       color: #e8d090;
     }
     .stage.is-3d .piece.king {
