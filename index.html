@@ -164,6 +164,7 @@
       <span id="status" class="turn red">Red to move</span>
       <button type="button" id="reset">New game</button>
       <button type="button" id="mode">Play vs computer</button>
+      <button type="button" id="auto">Autoplay</button>
       <button type="button" id="view">View: 3D table</button>
       <button type="button" id="orbit">Rotate table</button>
     </div>
@@ -175,7 +176,7 @@
     </div>
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
-      Reach the far row to king. Click <strong>Play vs computer</strong> — black thinks a few plies (captures and kings first), not a coin flip. Last move is tinted (from / to). Captures sit on the rack.
+      Reach the far row to king. Click <strong>Play vs computer</strong> — black thinks a few plies. <strong>Autoplay</strong> lets both sides think so a game can finish without clicks. Last move is tinted. Captures sit on the rack.
       <strong>3D table</strong> is a CSS first slice (tilt, wood discs, pick glow, green hints, rotate) — taste from
       <a href="https://github.com/bdmendes/feup-sgi-checkers" style="color:inherit">FEUP SGI checkers</a>, not a dump of that engine.
       Talk: <strong>#checkers-game-test-room</strong>.
@@ -190,7 +191,7 @@
     const viewBtn = document.getElementById("view");
     const orbitBtn = document.getElementById("orbit");
     let grid, turn, selected, legal, vsCpu = false, thinking = false, lastMove;
-    let view3d = true, yaw = 0;
+    let view3d = true, yaw = 0, autoplay = false;
 
     function start() {
       grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
@@ -352,7 +353,7 @@
           selected = { r: to.r, c: to.c };
           legal = more;
           draw();
-          if (vsCpu && turn === "black") queueCpu();
+          if (shouldThink(turn)) queueThink();
           return;
         }
       }
@@ -360,31 +361,39 @@
       selected = null;
       legal = [];
       draw();
-      if (vsCpu && turn === "black") queueCpu();
+      if (shouldThink(turn)) queueThink();
     }
 
-    function queueCpu() {
+    function shouldThink(side) {
+      if (autoplay) return true;
+      return vsCpu && side === "black";
+    }
+
+    function queueThink() {
       if (thinking) return;
+      if (!shouldThink(turn)) return;
       thinking = true;
-      statusEl.textContent = "Black thinking…";
+      const who = turn === "red" ? "Red" : "Black";
+      statusEl.textContent = who + " thinking…";
       window.setTimeout(() => {
-        if (!vsCpu || turn !== "black") {
+        if (!shouldThink(turn)) {
           thinking = false;
           draw();
           return;
         }
+        const side = turn;
         const pool = selected && legal.length
           ? legal.map((m) => ({ from: selected, ...m }))
-          : allMoves("black");
+          : allMoves(side);
         if (!pool.length) {
           thinking = false;
           draw();
           return;
         }
-        const pick = pickCpu(pool, "black");
+        const pick = pickCpu(pool, side);
         thinking = false;
         apply(pick.from, pick);
-      }, 40);
+      }, autoplay ? 220 : 40);
     }
 
     function draw() {
@@ -414,7 +423,7 @@
             sq.appendChild(el);
           }
           sq.addEventListener("click", () => {
-            if (thinking || (vsCpu && turn === "black")) return;
+            if (thinking || autoplay || (vsCpu && turn === "black")) return;
             const dests = (selected ? legal : available).filter((m) => m.r === r && m.c === c);
             if (dests.length === 1) {
               apply(dests[0].from, dests[0]);
@@ -473,13 +482,30 @@
       document.documentElement.style.setProperty("--yaw", yaw + "deg");
     }
 
-    document.getElementById("reset").onclick = start;
-    document.getElementById("mode").onclick = () => {
-      vsCpu = !vsCpu;
+    function syncModeButtons() {
       document.getElementById("mode").textContent = vsCpu
         ? "Playing vs computer"
         : "Play vs computer";
+      document.getElementById("auto").textContent = autoplay ? "Stop autoplay" : "Autoplay";
+    }
+
+    document.getElementById("reset").onclick = () => {
+      autoplay = false;
+      syncModeButtons();
       start();
+    };
+    document.getElementById("mode").onclick = () => {
+      vsCpu = !vsCpu;
+      if (!vsCpu) autoplay = false;
+      syncModeButtons();
+      start();
+    };
+    document.getElementById("auto").onclick = () => {
+      autoplay = !autoplay;
+      if (autoplay) vsCpu = true;
+      syncModeButtons();
+      start();
+      if (autoplay) queueThink();
     };
     viewBtn.onclick = () => setView(!view3d);
     orbitBtn.onclick = () => setYaw(yaw + 180);
