@@ -57,9 +57,14 @@ git clone https://github.com/Trevongit/checkers-game-test-project.git
 
 Fork + pull request if they don’t have push. Public repo on purpose so Desktop and guests don’t need a GitHub login just to *read*.
 
-## Why the first project card failed
+## How to open it in Buzz
 
-The first Buzz repo had **no clone URL**. Desktop tried empty relay git and got 401. We added a second repo named **checkers** pointed at this public GitHub URL.
+Projects → **checkers-game-test-project** → repo **checkers**.
+
+- **github.com** — public tree (no extra login)
+- **Local** — `~/PROJECTS/checkers-game-test-project` if you already have that folder
+
+The empty Buzz-hosted copy is gone from this project. Do not **Publish copy** unless you later want a one-way Buzz duplicate.
 
 ## Out of scope (for now)
 
