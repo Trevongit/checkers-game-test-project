@@ -94,7 +94,6 @@
       border-radius: 0.35rem;
       transform: rotateX(38deg) rotateZ(var(--yaw));
       transform-style: preserve-3d;
-      transition: transform 0.7s ease;
       box-shadow: 0 2.2rem 2rem #0007;
     }
     .stage.is-3d .board {
@@ -178,8 +177,8 @@
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
       Reach the far row to king. Click <strong>Play vs computer</strong> — black thinks a few plies. <strong>Autoplay</strong> lets both sides think so a game can finish without clicks. Last move is tinted. Captures sit on the rack.
-      A position seen three times, or forty plies with no capture, is a draw — no 2-by-2 king dances. <strong>Rotate table</strong> walks around (not a 180 flip); autoplay eases the camera forward each ply.
-      <strong>3D table</strong> is a CSS first slice (tilt, wood discs, pick glow, green hints, rotate) — taste from
+      A position seen three times, or forty plies with no capture, is a draw — no 2-by-2 king dances.
+      <strong>3D table</strong> is a CSS first slice (tilt, wood discs, pick glow, green hints) — taste from
       <a href="https://github.com/bdmendes/feup-sgi-checkers" style="color:inherit">FEUP SGI checkers</a>, not a dump of that engine.
       Talk: <strong>#checkers-game-test-room</strong>.
     </p>
@@ -399,7 +398,6 @@
       selected = null;
       legal = [];
       notePosition();
-      if (autoplay && view3d) setYaw(yaw + 12);
       if (outcome) {
         autoplay = false;
         thinking = false;
