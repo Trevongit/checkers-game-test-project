@@ -294,18 +294,25 @@
       return n;
     }
 
+    function replyAfter(state, mv, side) {
+      if (!mv.jump) return null;
+      const more = movesOn(state, mv.r, mv.c).jumps;
+      return more.length ? { r: mv.r, c: mv.c } : null;
+    }
+
+    function childValue(state, mv, side, depth, alpha, beta) {
+      const next = applyOn(state, mv.from, mv);
+      const only = replyAfter(next, mv, side);
+      if (only) return search(next, side, depth - 1, alpha, beta, only);
+      return -search(next, side === "red" ? "black" : "red", depth - 1, -beta, -alpha, null);
+    }
+
     function pickCpu(pool, side) {
       const depth = 4;
       let best = pool[0];
       let bestV = -1e9;
       for (const mv of pool) {
-        const next = applyOn(grid, mv.from, mv);
-        let v;
-        if (mv.jump && movesOn(next, mv.r, mv.c).jumps.length) {
-          v = search(next, side, depth, -1e9, 1e9);
-        } else {
-          v = -search(next, side === "red" ? "black" : "red", depth - 1, -1e9, 1e9);
-        }
+        let v = childValue(grid, mv, side, depth, -1e9, 1e9);
         v += mv.jump ? 3 : 0;
         if (v > bestV) {
           bestV = v;
@@ -315,19 +322,15 @@
       return best;
     }
 
-    function search(state, side, depth, alpha, beta) {
-      const pool = allMovesOn(state, side);
-      if (!pool.length) return -400;
+    function search(state, side, depth, alpha, beta, onlyFrom) {
+      const pool = onlyFrom
+        ? movesOn(state, onlyFrom.r, onlyFrom.c).jumps.map((x) => ({ from: onlyFrom, ...x }))
+        : allMovesOn(state, side);
+      if (!pool.length) return onlyFrom ? score(state, side) : -400;
       if (depth <= 0) return score(state, side);
       let best = -1e9;
       for (const mv of pool) {
-        const next = applyOn(state, mv.from, mv);
-        let v;
-        if (mv.jump && movesOn(next, mv.r, mv.c).jumps.length) {
-          v = search(next, side, depth, alpha, beta);
-        } else {
-          v = -search(next, side === "red" ? "black" : "red", depth - 1, -beta, -alpha);
-        }
+        const v = childValue(state, mv, side, depth, alpha, beta);
         if (v > best) best = v;
         if (v > alpha) alpha = v;
         if (alpha >= beta) break;
@@ -363,19 +366,25 @@
     function queueCpu() {
       if (thinking) return;
       thinking = true;
+      statusEl.textContent = "Black thinking…";
       window.setTimeout(() => {
-        thinking = false;
-        if (!vsCpu || turn !== "black") return;
+        if (!vsCpu || turn !== "black") {
+          thinking = false;
+          draw();
+          return;
+        }
         const pool = selected && legal.length
           ? legal.map((m) => ({ from: selected, ...m }))
           : allMoves("black");
         if (!pool.length) {
+          thinking = false;
           draw();
           return;
         }
         const pick = pickCpu(pool, "black");
+        thinking = false;
         apply(pick.from, pick);
-      }, 280);
+      }, 40);
     }
 
     function draw() {
@@ -386,7 +395,13 @@
           const sq = document.createElement("div");
           sq.className = "sq " + ((r + c) % 2 === 0 ? "light" : "dark");
           if (selected && selected.r === r && selected.c === c) sq.classList.add("hi");
+          if (available.some((m) => m.from.r === r && m.from.c === c && m.jump)) {
+            sq.classList.add("hi");
+          }
           if (legal.some((m) => m.r === r && m.c === c)) sq.classList.add("mv");
+          if (!selected && available.some((m) => m.r === r && m.c === c && m.jump)) {
+            sq.classList.add("mv");
+          }
           if (lastMove) {
             if (lastMove.from.r === r && lastMove.from.c === c) sq.classList.add("last-from");
             if (lastMove.to.r === r && lastMove.to.c === c) sq.classList.add("last-to");
@@ -400,9 +415,13 @@
           }
           sq.addEventListener("click", () => {
             if (thinking || (vsCpu && turn === "black")) return;
-            const hit = legal.find((m) => m.r === r && m.c === c);
-            if (selected && hit) {
-              apply(selected, hit);
+            const dests = (selected ? legal : available).filter((m) => m.r === r && m.c === c);
+            if (dests.length === 1) {
+              apply(dests[0].from, dests[0]);
+              return;
+            }
+            if (selected && dests.length) {
+              apply(selected, dests.find((m) => m.from.r === selected.r && m.from.c === selected.c) || dests[0]);
               return;
             }
             if (p && p.side === turn) {
