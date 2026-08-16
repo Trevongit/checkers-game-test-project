@@ -158,7 +158,7 @@
     <div class="bar">
       <span id="status" class="turn red">Red to move</span>
       <button type="button" id="reset">New game</button>
-      <button type="button" id="mode">Mode: two players</button>
+      <button type="button" id="mode">Play vs computer</button>
       <button type="button" id="view">View: 3D table</button>
       <button type="button" id="orbit">Rotate table</button>
     </div>
@@ -169,7 +169,7 @@
     </div>
     <p class="help">
       Click a piece, then a highlighted square. Jumps are mandatory when available.
-      Reach the far row to king. Toggle <strong>vs computer</strong> to play black as a simple random AI. Last move is tinted (from / to).
+      Reach the far row to king. Click <strong>Play vs computer</strong> and black moves on its own. Last move is tinted (from / to).
       <strong>3D table</strong> is a CSS first slice (tilt, wood discs, pick glow, green hints, rotate) — taste from
       <a href="https://github.com/bdmendes/feup-sgi-checkers" style="color:inherit">FEUP SGI checkers</a>, not a dump of that engine.
       Talk: <strong>#checkers-game-test-room</strong>.
@@ -347,8 +347,8 @@
     document.getElementById("mode").onclick = () => {
       vsCpu = !vsCpu;
       document.getElementById("mode").textContent = vsCpu
-        ? "Mode: vs computer"
-        : "Mode: two players";
+        ? "Playing vs computer"
+        : "Play vs computer";
       start();
     };
     viewBtn.onclick = () => setView(!view3d);
