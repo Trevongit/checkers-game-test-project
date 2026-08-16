@@ -6,47 +6,76 @@
   <title>Checkers · Buzz test game</title>
   <style>
     :root {
-      --bg: #1a1b26;
-      --panel: #24283b;
-      --ink: #c0caf5;
-      --muted: #565f89;
-      --red: #f7768e;
-      --black: #9ece6a;
-      --light: #e0af68;
-      --dark: #414868;
-      --accent: #7aa2f7;
+      --bg: #1c130d;
+      --panel: #2a1c14;
+      --ink: #f3e6d0;
+      --muted: #b39a7a;
+      --red: #9a2a22;
+      --black: #1a1512;
+      --light: #d7b27a;
+      --dark: #3a2414;
+      --accent: #c9a227;
+      --gold: #d4b56a;
       --yaw: 0deg;
-      --wood: #b07a42;
-      --frame: #7a4a24;
-      --plank: #d8b07a;
-      --inkwell: #1c1610;
+      --wood: #6b3d1f;
+      --frame: #5a3218;
+      --plank: #e0c08a;
+      --inkwell: #1a120c;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: ui-sans-serif, system-ui, sans-serif;
-      background: var(--bg);
+      font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+      background:
+        radial-gradient(80% 55% at 50% 18%, #3a2418 0%, #1a120c 62%, #0c0907 100%);
       color: var(--ink);
       display: grid;
       place-items: start center;
-      padding: 1.5rem 1rem 3rem;
+      padding: 1.4rem 1rem 3rem;
     }
-    main { width: min(40rem, 100%); }
-    h1 { font-size: 1.25rem; margin: 0 0 0.25rem; }
-    .sub { color: var(--muted); font-size: 0.875rem; margin-bottom: 1rem; }
+    main { width: min(46rem, 100%); text-align: center; }
+    .brand { margin: 0.2rem 0 0.15rem; }
+    .brand .crown { font-size: 1.1rem; color: var(--gold); letter-spacing: 0.4em; }
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: 0.04em;
+      color: #f0d7a4;
+      text-shadow: 0 2px 12px #0008;
+    }
+    .sub { color: var(--muted); font-size: 0.92rem; margin: 0.35rem 0 1rem; }
+    .sub .you { color: #c44; font-weight: 600; }
     .bar {
-      display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
-      margin-bottom: 0.75rem;
+      display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center;
+      justify-content: center; margin-bottom: 0.65rem;
     }
-    .turn { font-weight: 600; }
-    .turn.red { color: var(--red); }
-    .turn.black { color: var(--black); }
+    .turn {
+      font-weight: 600;
+      font-size: 0.92rem;
+      padding: 0.45rem 0.95rem;
+      border-radius: 0.85rem;
+      border: 1px solid #8a6a3a88;
+      background: #2a1c1488;
+    }
+    .turn.red { color: #e8c39a; }
+    .turn.black { color: #f3ead4; }
     button {
-      background: var(--panel); color: var(--ink); border: 1px solid #3b4261;
-      border-radius: 0.5rem; padding: 0.4rem 0.75rem; cursor: pointer;
+      font-family: inherit;
+      background: #2a1c14cc;
+      color: #f0d7a4;
+      border: 1px solid #8a6a3a99;
+      border-radius: 0.85rem;
+      padding: 0.45rem 0.95rem;
+      cursor: pointer;
     }
-    button:hover { border-color: var(--accent); }
+    button:hover { border-color: var(--gold); }
+    button.on {
+      background: linear-gradient(180deg, #6b3d1f, #4a2812);
+      border-color: #c9a227;
+      color: #f8ead0;
+    }
     .stage { width: 100%; }
     .table { width: 100%; }
     .board {
@@ -61,105 +90,131 @@
     .sq { position: relative; }
     .sq.light { background: var(--light); }
     .sq.dark { background: var(--dark); }
-    .sq.hi { outline: 3px solid var(--accent); outline-offset: -3px; }
-    .sq.mv { box-shadow: inset 0 0 0 4px #7aa2f788; }
-    .sq.last-from { outline: 3px dashed #bb9af7aa; outline-offset: -3px; }
-    .sq.last-to { outline: 3px solid #e0af68cc; outline-offset: -3px; }
+    .sq.hi { outline: 3px solid var(--gold); outline-offset: -3px; }
+    .sq.mv { box-shadow: inset 0 0 0 4px #3d8f4aaa; }
+    .sq.last-from { outline: 3px dashed #c9a22788; outline-offset: -3px; }
+    .sq.last-to { outline: 3px solid #f0d78acc; outline-offset: -3px; }
     .piece {
-      position: absolute; inset: 12%;
+      position: absolute; inset: 14%;
       border-radius: 50%;
       display: grid; place-items: center;
-      font-weight: 800; color: #1a1b26;
+      font-weight: 800; color: #f8ead0;
       cursor: pointer; user-select: none;
     }
-    .piece.red { background: radial-gradient(circle at 30% 30%, #ff9eb0, var(--red)); }
-    .piece.black { background: radial-gradient(circle at 30% 30%, #c6f0a0, var(--black)); }
-    .piece.king::after { content: "♔"; }
-    .help { margin-top: 1rem; color: var(--muted); font-size: 0.8rem; line-height: 1.45; }
+    .piece.red { background: radial-gradient(circle at 32% 28%, #e07060, #7a1c18 72%); }
+    .piece.black { background: radial-gradient(circle at 32% 28%, #5a5450, #14110f 72%); color: #d4b56a; }
+    .piece.king::after { content: "♔"; font-size: 0.95em; }
+    .help {
+      margin: 0.4rem auto 0;
+      max-width: 38rem;
+      text-align: left;
+      color: #cbb79a;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      background: #1a120ccc;
+      border: 1px solid #6b4a2888;
+      border-radius: 1rem;
+      padding: 0.85rem 1rem;
+    }
+    .help a { color: #e0c08a; }
 
-    /* 3D table — taste from FEUP SGI checkers, CSS only, no vendor dump */
-    body.view-3d { background: radial-gradient(120% 80% at 50% 0%, #3a2a18, #14110d 70%); }
-    body.view-3d .turn.red { color: #e8c39a; }
-    body.view-3d .turn.black { color: #f3ead4; }
+    body.view-3d { background: radial-gradient(80% 55% at 50% 18%, #3a2418 0%, #1a120c 62%, #0c0907 100%); }
     .stage.is-3d {
-      perspective: 1400px;
-      perspective-origin: 50% 28%;
-      padding: 0.5rem 1.4rem 4.5rem;
+      perspective: 1600px;
+      perspective-origin: 50% 22%;
+      padding: 0.2rem 2.2rem 3.2rem;
     }
     .stage.is-3d .table {
       background:
-        repeating-linear-gradient(90deg, #0000 0 18px, #00000010 18px 19px),
-        linear-gradient(180deg, #c99252, var(--wood) 40%, #8d5a2c);
-      padding: 1.2rem 1.2rem 1.5rem;
-      border-radius: 0.35rem;
-      transform: rotateX(38deg) rotateZ(var(--yaw));
+        radial-gradient(120% 80% at 50% 20%, #8a5a32, #4a2814 70%),
+        repeating-linear-gradient(90deg, #0000 0 22px, #00000018 22px 23px);
+      padding: 1.55rem 1.55rem 1.7rem;
+      border-radius: 0.85rem;
+      border: 3px solid #c9a22766;
+      transform: rotateX(32deg) rotateZ(var(--yaw));
       transform-style: preserve-3d;
-      box-shadow: 0 2.2rem 2rem #0007;
+      box-shadow:
+        0 0 0 1px #3a2010,
+        0 1.6rem 0 #2a160c,
+        0 2.4rem 2.4rem #000a;
     }
     .stage.is-3d .board {
       overflow: visible;
-      border-radius: 0.15rem;
-      border: 0.7rem solid var(--frame);
+      border-radius: 0.2rem;
+      border: 0.18rem solid #d4b56a;
       box-shadow:
-        0 0 0 2px #4a2a12,
-        0 18px 0 #00000022,
+        0 0 0 6px #5a3218,
         inset 0 0 0 1px #0004;
       transform-style: preserve-3d;
     }
-    .stage.is-3d .sq.light { background: var(--plank); }
-    .stage.is-3d .sq.dark { background: var(--inkwell); }
+    .stage.is-3d .sq.light {
+      background:
+        linear-gradient(135deg, #f0d6a4 0%, #d8b07a 55%, #c49a62 100%);
+    }
+    .stage.is-3d .sq.dark {
+      background:
+        linear-gradient(135deg, #4a3420 0%, #1c120c 70%);
+    }
     .stage.is-3d .sq.hi { outline-color: #f4e7b0; }
     .stage.is-3d .sq.mv { box-shadow: inset 0 0 0 4px #3d8f4aaa; background: #2f6b38; }
     .stage.is-3d .sq.last-from { outline-color: #c9a22788; }
     .stage.is-3d .sq.last-to { outline-color: #f0d78a; }
     .stage.is-3d .sq { transform-style: preserve-3d; }
     .stage.is-3d .piece {
-      inset: 16%;
-      transform: translateZ(12px);
+      inset: 15%;
+      transform: translateZ(14px);
       box-shadow:
-        0 1px 0 #0005,
-        0 5px 0 #3a2414,
-        0 9px 10px #0006;
+        inset 0 -6px 8px #0005,
+        0 2px 0 #0006,
+        0 8px 0 #2a160c,
+        0 12px 14px #0008;
     }
     .stage.is-3d .piece.red {
-      background: radial-gradient(circle at 32% 28%, #8a5a32, #4a2a16 70%);
-      color: #f3ead4;
+      background: radial-gradient(circle at 32% 26%, #ff8a78, #b3261c 42%, #5a1010 78%);
+      color: #f8ead0;
     }
     .stage.is-3d .piece.black {
-      background: radial-gradient(circle at 32% 28%, #f6edd8, #d7c4a0 70%);
-      color: #3a2414;
+      background: radial-gradient(circle at 32% 26%, #6a6662, #1c1816 55%, #080706 80%);
+      color: #e8d090;
     }
     .stage.is-3d .piece.king {
       box-shadow:
-        0 1px 0 #0005,
-        0 5px 0 currentColor,
-        0 6px 0 #0003,
-        0 11px 0 #3a2414,
-        0 14px 12px #0006;
+        inset 0 -6px 8px #0005,
+        0 2px 0 #0006,
+        0 8px 0 currentColor,
+        0 10px 0 #0004,
+        0 14px 16px #0008;
     }
     .stage.is-3d .sq.hi .piece {
-      filter: brightness(1.18);
+      filter: brightness(1.14);
       box-shadow:
-        0 0 18px #fff8,
-        0 1px 0 #0005,
-        0 5px 0 #3a2414,
-        0 9px 10px #0006;
+        0 0 16px #fff6,
+        inset 0 -6px 8px #0005,
+        0 8px 0 #2a160c,
+        0 12px 14px #0008;
     }
     .stage.is-3d .piece.just-moved { animation: hop 0.32s ease; }
     @keyframes hop {
       45% { transform: translateZ(36px) scale(1.06); }
     }
     .rack {
-      display: flex; gap: 1rem; flex-wrap: wrap;
-      margin: 0.35rem 0 0.75rem; color: var(--muted); font-size: 0.85rem;
+      display: flex; gap: 1.4rem; flex-wrap: wrap; justify-content: center;
+      margin: 0.15rem 0 0.85rem; color: var(--muted); font-size: 0.9rem;
     }
     .rack b { color: var(--ink); font-weight: 600; }
+    .chip {
+      width: 0.85rem; height: 0.85rem; border-radius: 50%;
+      display: inline-block; vertical-align: -0.1rem; margin-right: 0.35rem;
+      box-shadow: inset 0 -2px 3px #0006;
+    }
+    .chip.red { background: radial-gradient(circle at 30% 30%, #e07060, #7a1c18); }
+    .chip.black { background: radial-gradient(circle at 30% 30%, #6a6662, #14110f); }
   </style>
 </head>
 <body class="view-3d">
   <main>
-    <h1>Checkers</h1>
-    <p class="sub">Buzz test product · you are red · play a friend or the computer</p>
+    <div class="brand"><div class="crown">♔</div><h1>Checkers</h1></div>
+    <p class="sub">Buzz test product · you are <span class="you">red</span> · play a friend or the computer</p>
     <div class="bar">
       <span id="status" class="turn red">Red to move</span>
       <button type="button" id="reset">New game</button>
@@ -505,14 +560,16 @@
       const redLeft = countSide("red");
       const blackLeft = countSide("black");
       rackEl.replaceChildren(
-        rackLine("Red captured ", 12 - blackLeft),
-        rackLine("Black captured ", 12 - redLeft)
+        rackLine("red", "Red captured ", 12 - blackLeft),
+        rackLine("black", "Black captured ", 12 - redLeft)
       );
     }
 
-    function rackLine(label, n) {
+    function rackLine(side, label, n) {
       const s = document.createElement("span");
-      s.append(label, Object.assign(document.createElement("b"), { textContent: String(n) }));
+      const chip = document.createElement("i");
+      chip.className = "chip " + side;
+      s.append(chip, label, Object.assign(document.createElement("b"), { textContent: String(n) }));
       return s;
     }
 
@@ -536,10 +593,13 @@
     }
 
     function syncModeButtons() {
-      document.getElementById("mode").textContent = vsCpu
-        ? "Playing vs computer"
-        : "Play vs computer";
-      document.getElementById("auto").textContent = autoplay ? "Stop autoplay" : "Autoplay";
+      const mode = document.getElementById("mode");
+      const auto = document.getElementById("auto");
+      mode.textContent = vsCpu ? "Playing vs computer" : "Play vs computer";
+      auto.textContent = autoplay ? "Stop autoplay" : "Autoplay";
+      mode.classList.toggle("on", vsCpu && !autoplay);
+      auto.classList.toggle("on", autoplay);
+      document.getElementById("reset").classList.toggle("on", false);
     }
 
     document.getElementById("reset").onclick = () => {
